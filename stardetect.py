@@ -1,9 +1,16 @@
+# stardetect.py
+# For detection of star constellation from extracted coordinates of star space from image.
+# Files needed : 
+# (1) starspace.star (extracted star information)
+# (2) constellation.star ( constellation information )
+# Author : Mohammed Ajmal
+
+
 from math import sqrt
 import itertools
 
-f = open('starSet1.star' ,"r")
-lines = f.readlines()
-f.close()
+with open('starspace.star' ,"r") as f:
+	lines = f.readlines()
 
 class Star:
 	def __init__(self, x, y ):
@@ -22,6 +29,16 @@ stars = [ [int(l[:-1].split(',')[0]), int(l[:-1].split(',')[1])] for l in lines 
 constellationStars1 =  [stars[0]] + stars[2:5]
 constellationStars2 =  [stars[1]] + stars[6:8] # all stars different from constellationStars1
 constellationStars3 =  [stars[1]] + stars[2:5] # one star different from constellationStars1
+
+
+with open('hunter.star' , "r") as f_hunter:
+	lines = f_hunter.readlines()
+	hunterConst = [ [int(l[:-1].split(',')[0]), int(l[:-1].split(',')[1])] for l in lines ]
+
+with open('chinna.star' , "r") as f_hunter:
+	lines = f_hunter.readlines()
+	chinnaConst = [ [int(l[:-1].split(',')[0]), int(l[:-1].split(',')[1])] for l in lines ]
+
 
 def triangleMap(starset):
 	triangleSides = [];
@@ -99,7 +116,7 @@ def constellationMatch( constellationA, constellationB):
 
 
 def matches(triA,triB):
-	matchTolerance = 0.001
+	matchTolerance = 0.000001
 	rms = sqrt( (triA[1]-triB[1])**2 + (triA[2]-triB[2])**2 )/2
 	if (rms < matchTolerance):
 		print rms
@@ -110,11 +127,29 @@ def matches(triA,triB):
 
 
 """ defining the constellation based on previous data """
-fourStarCons1 = Constellation(4, tri=triangleMap(constellationStars1), stars=constellationStars1);
-fourStarCons2 = Constellation(4, tri=triangleMap(constellationStars2), stars=constellationStars2);
-fourStarCons3 = Constellation(4, tri=triangleMap(constellationStars3), stars=constellationStars3);
+fourStarCons1 = Constellation(4, tri=triangleMap(constellationStars1), stars=constellationStars1)
+hunterConstellation = Constellation(len(hunterConst), tri=triangleMap(hunterConst), stars=hunterConst)
+chinnaConstellation = Constellation(len(chinnaConst), tri=triangleMap(chinnaConst), stars=chinnaConst)
 
-print constellationMatch (fourStarCons3, fourStarCons2)
+# for detecting star loaded from 
+
+permuteSet = permuteN(stars,len(chinnaConst) )
+scoredb = []
+i =0
+big = 0
+for comb in permuteSet:
+	comb = Constellation(len(comb), tri=triangleMap(comb), stars=comb)
+	score = constellationMatch(chinnaConstellation, comb)
+	scoredb.append((score,i))
+	i += 1
+ 
+
+def takeSecond(elem):
+    return elem[1]
+
+sortedList = sorted(scoredb, key=takeSecond)
+
+print sortedList
 # starSpacePerms = permuteN()
 # permute 4 constellation stars from universal starset
 # use each of it to check if matches with the one to detect

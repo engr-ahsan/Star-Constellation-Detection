@@ -1,8 +1,19 @@
+# starextract.py
+# For extraction of stars from sky image
+# Files needed : 
+# (1) image of sky
+# File output :
+# (1) deteceted.star pixels coordinates of stars extracted
+# Author : Mohammed Ajmal
+
+
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
+from skimage.feature import blob_log
 
-img = cv2.imread('orion2.jpg',cv2.IMREAD_GRAYSCALE)
+skyfile = 'orion2.jpg'
+img = cv2.imread(skyfile,cv2.IMREAD_GRAYSCALE)
 f = np.fft.fft2(img)
 fshift = np.fft.fftshift(f)
 
@@ -18,8 +29,6 @@ fshift[crow-hpfmasksize:crow+hpfmasksize, ccol-hpfmasksize:ccol+hpfmasksize] = 0
 f_ishift = np.fft.ifftshift(fshift)
 img_back = np.fft.ifft2(f_ishift)
 img_back = np.abs(img_back)
-
-
 
 
 # To Plot histogram of the image to know intensity distribution
@@ -61,25 +70,27 @@ img_back = cv2.convertScaleAbs(img_back)
 # Perform OpenCV built in blob detection to filter out the star coordinates.
 
 
-from skimage.feature import blob_log
 blobs = blob_log(img_back, max_sigma=30, num_sigma=10, threshold=.2) # tweak threshold to filter out stars of smaller size
 
 
+cv2.imwrite(skyfile[:-4]+'fourier.jpg', img_back)
+
 # For plotting the detected blobs
 
-# fig, ax = plt.subplots(1)
-# ax.set_aspect('equal')
-# ax.imshow(img_back, cmap = 'gray')
+fig, ax = plt.subplots(1)
+ax.set_aspect('equal')
+ax.imshow(img_back, cmap = 'gray')
 
-# for blob in blobs:
-# 	y,x,r = blob
-# 	c = plt.Circle((x, y), r, color='red', linewidth=2, fill=False)
-# 	ax.add_artist(c)
+for blob in blobs:
+	y,x,r = blob
+	c = plt.Circle((x, y), r, color='red', linewidth=2, fill=False)
+	ax.add_artist(c)
 
-# plt.imshow(img_back, cmap = 'gray')
-# plt.show()
+plt.imshow(img_back, cmap = 'gray')
+plt.show()
 
-with open('detectedFromImage.star' ,"w") as fStarOut:
+with open('detected.star' ,"w") as fStarOut:
 	for blob in blobs:
 		y,x,r = blob
 		fStarOut.write("{},{}\n".format(int(x),int(y)))
+
